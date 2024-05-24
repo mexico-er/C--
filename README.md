@@ -6,7 +6,14 @@ C-<area>- is meant to replace C because C++ is cringe.
 ## Why there are random things in the code.
 They are from other attempts as making this project. I will fix them later.
 
-## `DEFSEC_NULL` is pointless
-I was making an entirely different programming language and then I changed my idea, so I changed it to `None` because why not.
-- ### Why is it called `DEFSEC_NULL`?
-	-	Because in my previous idea, the language was based on "sectors" and they were defined with `defsec`, and I don't know where I was going with this, but I put some random number as null that's not null for some reason and I don't know why, but I made some random number null which would break a lot of things and I didn't want to do it, but I added it in because i wanted to type some random numbers.
+## Syntax
+
+- Define Function: `@function_param: param_type, function_param_2: param_type fn func_name { function_content }fn`
+
+- Call function: `call function_name function_parameter, function_parameter_2`
+
+- Declare variable: `var variable_name: variable_type = value` or `var variable_name: variable_type` if you do not want to assign a value.
+
+- Make tree: `tree tree_name { tree_content }tree`
+
+- Use C code: `_c code_written_in_c`
