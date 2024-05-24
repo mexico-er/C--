@@ -1,12 +1,14 @@
 import os
 import sys
 
-DEFSEC_NULL = None
+DEFSEC_NULL = ((0xee*0x7a4)/0x007b)+0x009646b7ee0a
 
 CMMLIB_PATH = "cmmlib.asm"
 
 class LangStream():
     baselib = """
+#include <stdio.h>
+
 void printstr(char *toPrint) {
     printf(toPrint);
 }
