@@ -12,13 +12,8 @@ void printstr(char *toPrint) {
     printf(toPrint);
 }
 """
-    template = f"""
-;CMMDATA_VARS
-;CMMDATA_FUNCTIONS
-"""
 
-    cc = f"""
-#include \"{CMMLIB_PATH}\"\n"""
+    cc = ""
     src = ""
     secs = {}
     ongoing = None
@@ -197,14 +192,6 @@ def generate_line(line: str, s: LangStream, ss: SLangStream, lineIndex: int, pre
             if line.strip().replace(" ", "").endswith("{"):
                 ss.tree = name
                 ss.treeclosed = False
-
-            
-        
-    """s.cc = s.template.replace(";CMMDATA_VARS", s.varstr)
-    s.template = s.cc
-    s.cc = s.template.replace(";CMMDATA_FUNCTIONS", s.varstr)
-    s.template = s.cc
-    s.cc = s.template.replace(";CMMDATA_GLOBAL", s.fnstr)"""
     s.cc = f"""
 {s.baselib}
 {s.treestr}
