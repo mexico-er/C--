@@ -1,8 +1,6 @@
 import os
 import sys
 
-DEFSEC_NULL = ((0xee*0x7a4)/0x007b)+0x009646b7ee0a
-
 CMMLIB_PATH = "cmmlib.asm"
 
 class LangStream():
@@ -35,7 +33,7 @@ fn hello {
 
 """
     secs = {}
-    ongoing = DEFSEC_NULL
+    ongoing = None
 
     scache = ""
     
@@ -45,13 +43,13 @@ fn hello {
     gstr = ""
 
 class SLangStream():
-    fn = DEFSEC_NULL
+    fn = None
     fnclosed = True
 
-    externc = DEFSEC_NULL
+    externc = None
     externcclosed = True
 
-    tree = DEFSEC_NULL
+    tree = None
     treeclosed = True
 
 class types:
