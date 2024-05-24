@@ -1,7 +1,7 @@
 import os
 import sys
 
-DEFSEC_NULL = ((0xee*0x7a4)/0x007b)+0x009646b7ee0a
+DEFSEC_NULL = None
 
 CMMLIB_PATH = "cmmlib.asm"
 
