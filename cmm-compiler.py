@@ -1,11 +1,12 @@
 import os
 import sys
 
-CMMLIB_PATH = "cmmlib.asm"
+CMMLIB_PATH = ""
 
 class LangStream():
     baselib = """
 #include <stdio.h>
+#include <stdint.h>
 
 void printstr(char *toPrint) {
     printf(toPrint);
@@ -18,20 +19,7 @@ void printstr(char *toPrint) {
 
     cc = f"""
 #include \"{CMMLIB_PATH}\"\n"""
-    src = """
-var int hello 0
-var string hello9 "Wassup!!!!!"
-
-fn main {
-    exit
-}
-    
-@test_int: int, test_str: string
-fn hello {
-    return
-}
-
-"""
+    src = ""
     secs = {}
     ongoing = None
 
@@ -52,14 +40,22 @@ class SLangStream():
     tree = None
     treeclosed = True
 
-class types:
-    INT = ["int"]
-
 def getTypeEquivalent(_type: str):
     if _type == "string":
         return "char*"
     if _type == "int":
         return "int"
+    if _type == "uint":
+        return "unsigned int"
+    if _type == "uint8":
+        return "uint8_t"
+    if _type == "uint16":
+        return "uint16_t"
+    if _type == "uint32":
+        return "uint32_t"
+    if _type == "any":
+        return "void*"
+
     if _type.startswith("_ctype/"):
         return _type.split("/")[1]
 
@@ -143,66 +139,67 @@ def generate_line(line: str, s: LangStream, ss: SLangStream, lineIndex: int, pre
     if line.strip().replace(" ", "").startswith("}tree"): ss.treeclosed = True; s.treestr += f"\n{'}'} {ss.tree}"
     if not ss.treeclosed:
         s.treestr += "\n\t"+toASM_TREE(line)
-
-    if ins == "var":
-        s.varstr += f"\n{toASM_FN(line)}"
     
-    elif ins == "public":
-        if sstr[1] == "fn":
-            name = sstr[2]
-            if name == "main": name = "main"
+    if ss.fnclosed and ss.treeclosed:
+        if ins == "var":
+            s.varstr += f"\n{toASM_FN(line)}"
+        
+        elif ins == "public":
+            if sstr[1] == "fn":
+                name = sstr[2]
+                if name == "main": name = "main"
 
-            prefix = "" if name == "main" else "CMINUSMINUS_"
-            s.fnstr += f"\n{prefix}{name}{'{'}"
-            s.gstr += name
+                prefix = "" if name == "main" else "CMINUSMINUS_"
+                s.fnstr += f"\n{prefix}{name}{'{'}"
+                s.gstr += name
+
+                if line.strip().replace(" ", "").endswith("{"):
+                    ss.fn = name
+                    ss.fnclosed = False
+
+        elif ins == "fn":
+            name = sstr[1]
+            if name.__contains__(":"): name = name.split(":")[0]
+
+            fntype = "int" if name == "main" else "void"
+            if line.__contains__(":"):
+                content = line.strip().replace(" ", "").split(name)[1]
+                fntype = getTypeEquivalent(content.split(":")[1].split("{")[0])
+            
+            if prevLine.strip().replace(" ", "").startswith("@") and ins == "fn":
+                content = prevLine.strip().replace(" ", "").split("@")[1]
+                argsbase = content.split(",")
+                args = {}
+                argbuilder = ""
+                suffix = ", "
+                for i in range(argsbase.__len__()):
+                    arg = argsbase[i].split(":")
+                    if i == argsbase.__len__()-1: suffix = ""
+                    argbuilder += f" {getTypeEquivalent(arg[1])} {arg[0]}{suffix}"
+                    args.update({arg[0]: arg[1]})
+                
+                prefix = "" #if name == "main" else "CMINUSMINUS_"
+                s.fnstr += f"\n{fntype} {prefix}{name}( {argbuilder} ){'{'}"
+            else:
+                prefix = "" #if name == "main" else "CMINUSMINUS_"
+                s.fnstr += f"\n{fntype} {prefix}{name}(){'{'}"
 
             if line.strip().replace(" ", "").endswith("{"):
                 ss.fn = name
                 ss.fnclosed = False
 
-    elif ins == "fn":
-        name = sstr[1]
-        if name.__contains__(":"): name = name.split(":")[0]
-
-        fntype = "int" if name == "main" else "void"
-        if line.__contains__(":"):
-            content = line.strip().replace(" ", "").split(name)[1]
-            fntype = getTypeEquivalent(content.split(":")[1].split("{")[0])
+                #s.varstr += f"\n\tCMMFN_ARG_{arg[0]} db \"{arg[1]}\", 0"
         
-        if prevLine.strip().replace(" ", "").startswith("@") and ins == "fn":
-            content = prevLine.strip().replace(" ", "").split("@")[1]
-            argsbase = content.split(",")
-            args = {}
-            argbuilder = ""
-            suffix = ", "
-            for i in range(argsbase.__len__()):
-                arg = argsbase[i].split(":")
-                if i == argsbase.__len__()-1: suffix = ""
-                argbuilder += f" {getTypeEquivalent(arg[1])} {arg[0]}{suffix}"
-                args.update({arg[0]: arg[1]})
+        elif ins == "tree":
+            name = sstr[1]
+                
+            s.treestr += f"\ntypedef struct {'{'}"
+            if line.strip().replace(" ", "").endswith("{"):
+                ss.tree = name
+                ss.treeclosed = False
+
             
-            prefix = "" #if name == "main" else "CMINUSMINUS_"
-            s.fnstr += f"\n{fntype} {prefix}{name}( {argbuilder} ){'{'}"
-        else:
-            prefix = "" #if name == "main" else "CMINUSMINUS_"
-            s.fnstr += f"\n{fntype} {prefix}{name}(){'{'}"
-
-        if line.strip().replace(" ", "").endswith("{"):
-            ss.fn = name
-            ss.fnclosed = False
-
-            #s.varstr += f"\n\tCMMFN_ARG_{arg[0]} db \"{arg[1]}\", 0"
-    
-    elif ins == "tree":
-        name = sstr[1]
-            
-        s.treestr += f"\ntypedef struct {'{'}"
-        if line.strip().replace(" ", "").endswith("{"):
-            ss.tree = name
-            ss.treeclosed = False
-
         
-    
     """s.cc = s.template.replace(";CMMDATA_VARS", s.varstr)
     s.template = s.cc
     s.cc = s.template.replace(";CMMDATA_FUNCTIONS", s.varstr)
