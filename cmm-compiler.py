@@ -4,14 +4,10 @@ import sys
 CMMLIB_PATH = ""
 
 class LangStream():
-    baselib = """
-#include <stdio.h>
-#include <stdint.h>
-
-void printstr(char *toPrint) {
-    printf(toPrint);
-}
-"""
+    def __init__(self):
+        with open("baselib.h", "r") as f:
+            self.baselib = f.read()
+            f.close()
 
     cc = ""
     src = ""
